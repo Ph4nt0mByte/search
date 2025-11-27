@@ -575,17 +575,38 @@ export default function CitySearchApp() {
                    const start = COORDS[fromNode];
                    const end = COORDS[toNode];
                    
+                   // 1. Is it the final path edge?
                    const isPathEdge = path.includes(fromNode) && path.includes(toNode) && 
                                       Math.abs(path.indexOf(fromNode) - path.indexOf(toNode)) === 1;
+                   
+                   // 2. Is it an explored edge that wasn't the final path?
+                   // Check if both connected nodes were explored, and it's not the final path.
+                   const isExploredEdge = !isPathEdge && 
+                                          exploredNodes.includes(fromNode) && 
+                                          exploredNodes.includes(toNode);
+
+                   let strokeColor = '#718096'; // Default grey
+                   let strokeWidth = 0.5;
+                   let strokeDash = '2,1';
+
+                   if (isPathEdge) {
+                       strokeColor = '#48bb78'; // Green for final path
+                       strokeWidth = 2;
+                       strokeDash = 'none';
+                   } else if (isExploredEdge) {
+                       strokeColor = '#f6ad55'; // Amber/Orange for explored attempts
+                       strokeWidth = 1;
+                       strokeDash = '4,2';
+                   }
 
                    return (
                      <line
                        key={`${fromNode}-${toNode}`}
                        x1={start.x} y1={start.y}
                        x2={end.x} y2={end.y}
-                       stroke={isPathEdge ? '#63b3ed' : '#718096'} /* Blue for path, grey for others */
-                       strokeWidth={isPathEdge ? 1.5 : 0.5}
-                       strokeDasharray={isPathEdge ? 'none' : '2,1'}
+                       stroke={strokeColor} 
+                       strokeWidth={strokeWidth}
+                       strokeDasharray={strokeDash}
                        style={{transition: 'all 0.5s'}}
                      />
                    );
@@ -608,8 +629,8 @@ export default function CitySearchApp() {
                  if (isBlocked) { fill = '#c53030'; stroke = '#e53e3e'; } /* Dark red for blocked */
                  else if (isStart) { fill = '#63b3ed'; stroke = '#2b6cb0'; radius = 5; } /* Blue for start */
                  else if (isGoal) { fill = '#48bb78'; stroke = '#2f855a'; radius = 5; } /* Green for goal */
-                 else if (isPath) { fill = '#90cdf4'; stroke = '#63b3ed'; } /* Light blue for path */
-                 else if (isExploredOnly) { fill = '#2f855a'; stroke = '#48bb78'; } /* Dark green for explored */
+                 else if (isPath) { fill = '#81e6d9'; stroke = '#48bb78'; } /* Light Teal/Green for path nodes */
+                 else if (isExploredOnly) { fill = '#f6ad55'; stroke = '#dd6b20'; } /* Orange/Amber for explored */
 
                  return (
                    <g 
@@ -629,7 +650,7 @@ export default function CitySearchApp() {
                      <text
                        x={pos.x} y={pos.y - 4}
                        textAnchor="middle"
-                       fill={isPath ? '#2b6cb0' : '#e2e8f0'} /* Lighter text for nodes */
+                       fill={isPath ? '#2f855a' : '#e2e8f0'} /* Dark green text for path nodes */
                        fontSize="3"
                        fontWeight="bold"
                        style={{pointerEvents: 'none', textTransform: 'uppercase'}}
