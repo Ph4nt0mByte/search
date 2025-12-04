@@ -154,6 +154,7 @@ def search():
     goal = data.get('goal')
     algo = data.get('algorithm')
     blocked_nodes = set(data.get('blocked', []))
+    print(f"Backend search called with blocked_nodes: {blocked_nodes}")
     
     if start not in graph or goal not in graph:
         return jsonify({'error': 'Unknown start or goal state. Please check the map nodes.'}), 400

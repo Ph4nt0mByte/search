@@ -282,6 +282,7 @@ export default function CitySearchApp() {
   const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'Backend' | 'Simulation'>('Simulation');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const exploredListRef = useRef<HTMLDivElement>(null);
 
@@ -291,6 +292,13 @@ export default function CitySearchApp() {
       exploredListRef.current.scrollTop = exploredListRef.current.scrollHeight;
     }
   }, [animatedExploredNodes]);
+
+  // Re-run search when blockedNodes changes after a search has been performed
+  useEffect(() => {
+    if (hasSearched && !loading && startNode && goalNode) {
+      handleSearch();
+    }
+  }, [blockedNodes]);
 
   // Animation effect for explored nodes
   useEffect(() => {
@@ -370,6 +378,7 @@ export default function CitySearchApp() {
       setMessage("Start node is blocked.");
       setExploredNodes([]);
       setFinalPath([]);
+      setHasSearched(true);
       setLoading(false);
       return;
     }
@@ -378,6 +387,7 @@ export default function CitySearchApp() {
       setMessage("Goal node is blocked.");
       setExploredNodes([]);
       setFinalPath([]);
+      setHasSearched(true);
       setLoading(false);
       return;
     }
@@ -386,6 +396,8 @@ export default function CitySearchApp() {
       setFinalPath([actualStart]);
       setExploredNodes([actualStart]);
       setMessage("Start and Goal are the same.");
+      setHasSearched(true);
+      setLoading(false);
       return;
     }
 
@@ -501,6 +513,7 @@ export default function CitySearchApp() {
       setExploredNodes(explored);
       setMessage("No path found.");
     }
+    setHasSearched(true);
     setLoading(false);
   };
 
@@ -516,6 +529,7 @@ export default function CitySearchApp() {
     setAnimatedExploredNodes([]);
     if (animationRef.current) clearInterval(animationRef.current);
     setLoading(true);
+    setHasSearched(false);
 
     if (!startNode || !goalNode) {
       setError("Please select both start and goal states.");
@@ -550,26 +564,31 @@ export default function CitySearchApp() {
         setPathLength(result.path_length);
         setPathCost(result.path_cost);
         setMessage(result.message);
+        setHasSearched(true);
       } else {
         setError(data.error || 'An error occurred');
         setFinalPath([]);
         setExploredNodes(data.explored || []);
         setPathLength(0);
         setPathCost(0);
+        setHasSearched(true);
       }
     } catch (err) {
       setError('Failed to connect to backend. Is Python running? Switch to Simulation mode to test.');
+      setHasSearched(true);
     } finally {
       setLoading(false);
     }
   };
 
   const toggleBlocked = (node: Node) => {
+    console.log(`Toggling block for ${node}. Current blockedNodes:`, blockedNodes);
     if (blockedNodes.includes(node)) {
       setBlockedNodes(blockedNodes.filter(n => n !== node));
     } else {
       setBlockedNodes([...blockedNodes, node]);
     }
+    console.log(`After toggle, blockedNodes:`, blockedNodes);
   };
   
   return (
